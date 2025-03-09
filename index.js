@@ -3,7 +3,7 @@ const {v4:uuidv4} = require('uuid')
 const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 let persons =[
     { 
       "id": "1",
@@ -31,6 +31,7 @@ app.use(express.json())
 morgan.token('body',(req)=>JSON.stringify(req.body))
 app.use(morgan(':method :url :status :response-time ms :body'))
 app.use(cors({origin:'http://localhost:5173'}))
+app.use(express.static('dist'))
 
 app.get('/api/persons',(req,res)=>{
     res.status(200).json(persons)
@@ -92,6 +93,16 @@ app.post('/api/persons',(req,res)=>{
    persons = persons.concat(newPerson)
     res.status(201).json(newPerson)
      
+})
+app.put('/api/persons/:id',(req,res)=>{
+    const id = Number(req.params.id)
+    const newPerson = req.body
+    const targetPerson = persons.findIndex(person =>person.id === id)
+    if(targetPerson === -1){
+        return res.status(404).json({"error":"perosn is not existed"})
+    }
+    persons[targetPerson] = {...persons[targetPerson],...newPerson}
+    res.status(200).json(persons[targetPerson])
 })
 
 app.listen(PORT,()=>console.log('Hello from the PORT'))
